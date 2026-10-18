@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+npm-debug.log*
+
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+!.env.example
