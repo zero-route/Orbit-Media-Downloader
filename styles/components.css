@@ -847,6 +847,10 @@
   transition: 1.3s;
 }
 
+.platform-icon:hover{
+  scale: 1;
+}
+
 .platform-icon img {
   display: block;
   width: 100%;
@@ -855,8 +859,4 @@
   object-fit: contain;
   object-position: center;
   border-radius: 50%;
-}
-
-.platform-icon:hover{
-  scale: 1.5;
 }
