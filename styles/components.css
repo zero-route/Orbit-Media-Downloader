@@ -844,11 +844,6 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
-  transition: 1s;
-}
-
-.platform-icon:hover{
-  transform: scale3d(1.5px));
 }
 
 .platform-icon img {
