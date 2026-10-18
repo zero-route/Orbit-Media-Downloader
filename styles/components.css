@@ -844,7 +844,7 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
-  transition: 2.3s;
+  transition: 1.3s;
 }
 
 .platform-icon img {
