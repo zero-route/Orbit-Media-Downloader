@@ -144,8 +144,7 @@ export default function PlatformRow({ active }: Props) {
                   boxShadow: "none",
                   flexShrink: 0,
                   userSelect: "none",
-                  WebkitUserDrag: "none",
-                }}
+                                }}
               />
             </div>
           );
