@@ -88,6 +88,18 @@ export default function Home() {
           onSubmit={handleRetry}
         />
 
+        <p
+          style={{
+            margin: "-10px 4px 0",
+            color: "var(--muted)",
+            fontSize: "13px",
+            lineHeight: 1.5,
+            textAlign: "left",
+          }}
+        >
+          Pengingat: Hormati karya dan hak kekayaan intelektual kreator.
+        </p>
+
         <PlatformRow active={detected?.platform ?? null} />
 
         {unsupported ? (
@@ -105,9 +117,10 @@ export default function Home() {
           />
         ) : null}
 
-        {status === "ready" && data ? <ResultCard key={data.sourceUrl} result={data} /> : null}
+        {status === "ready" && data ? (
+          <ResultCard key={data.sourceUrl} result={data} />
+        ) : null}
       </main>
     </div>
   );
 }
-  
