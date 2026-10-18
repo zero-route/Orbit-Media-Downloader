@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Orbit",
   description: "Download media dari berbagai platform.",
   icons: { 
-    icon: "/icon.svg", 
+    icon: "/logo.png", 
     apple: "/logo.png",
     shortcut: "/logo.png", 
   },
