@@ -127,25 +127,27 @@ export default function PlatformRow({ active }: Props) {
                 minHeight: "44px",
               }}
             >
-              <img
-                src={platform.src}
-                alt={platform.name}
-                width={44}
-                height={44}
-                draggable={false}
+              <div
+                className="platform-icon"
                 style={{
-                  display: "block",
                   width: "clamp(27px, 8vw, 44px)",
                   height: "clamp(27px, 8vw, 44px)",
-                  objectFit: "contain",
-                  objectPosition: "center",
                   opacity: active && !isActive ? 0.85 : 1,
-                  filter: "none",
-                  boxShadow: "none",
-                  flexShrink: 0,
-                  userSelect: "none",
-                                }}
-              />
+                  transition: "opacity 0.2s ease",
+                }}
+              >
+                <img
+                  src={platform.src}
+                  alt={platform.name}
+                  width={44}
+                  height={44}
+                  draggable={false}
+                  style={{
+                    userSelect: "none",
+                    WebkitUserSelect: "none",
+                  }}
+                />
+              </div>
             </div>
           );
         })}
