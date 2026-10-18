@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Alert from "@/components/Alert";
 import Hero from "@/components/Hero";
-import Logo from "@/components/Logo";
+import Logo from "@/logo.png";
 import PlatformRow from "@/components/PlatformRow";
 import ResultCard from "@/components/ResultCard";
 import ResultSkeleton from "@/components/Skeleton";
