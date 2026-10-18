@@ -144,7 +144,7 @@ button:disabled {
 
   .o-main.is-idle {
     max-width: 520px;
-    padding: clamp(88px, 13vh, 112px) 20px 40px;
+    padding: clamp(58px, 8vh, 72px) 20px 40px;
     gap: 22px;
   }
 
@@ -164,7 +164,7 @@ button:disabled {
 
 @media (max-width: 380px) {
   .o-main.is-idle {
-    padding-top: 76px;
+    padding-top: 54px;
     gap: 20px;
   }
 
