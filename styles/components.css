@@ -844,6 +844,7 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
+  transition: 2.3s;
 }
 
 .platform-icon img {
@@ -854,9 +855,8 @@
   object-fit: contain;
   object-position: center;
   border-radius: 50%;
-  transition: 2.3s;
 }
 
-.platform-icon img:hover{
+.platform-icon:hover{
   transform: scale(1.5);
 }
