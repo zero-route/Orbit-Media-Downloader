@@ -4,7 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Orbit",
   description: "Download media dari berbagai platform.",
-  icons: { icon: "/icon.svg" },
+  icons: { 
+    icon: "/icon.svg", 
+    apple: "/logo.png",
+    shortcut: "/logo.png", 
+  },
 };
 
 export const viewport: Viewport = {
