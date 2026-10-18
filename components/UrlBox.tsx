@@ -60,6 +60,8 @@ export default function UrlBox({
         style={{
           flex: "1 1 0%",
           minWidth: 0,
+          boxShadow: "none",
+          filter: "none",
         }}
       >
         <div
@@ -71,7 +73,14 @@ export default function UrlBox({
             gap: "8px",
           }}
         >
-          <span className="o-urlbox-icon">
+          <span
+            className="o-urlbox-icon"
+            style={{
+              color: detected ? "var(--accent)" : "var(--muted)",
+              filter: "none",
+              textShadow: "none",
+            }}
+          >
             <LinkIcon size={20} />
           </span>
 
