@@ -1,0 +1,34 @@
+[data-platform="tiktok"] {
+  --accent: #25f4ee;
+  --accent-text: #06201f;
+}
+
+[data-platform="instagram"] {
+  --accent: #e1306c;
+  --accent-text: #ffffff;
+}
+
+[data-platform="youtube"] {
+  --accent: #ff3b30;
+  --accent-text: #ffffff;
+}
+
+[data-platform="x"] {
+  --accent: #e8eaf0;
+  --accent-text: #0b0d12;
+}
+
+[data-platform="threads"] {
+  --accent: #c7cbd6;
+  --accent-text: #0b0d12;
+}
+
+[data-platform="pinterest"] {
+  --accent: #e60023;
+  --accent-text: #ffffff;
+}
+
+[data-platform="spotify"] {
+  --accent: #1db954;
+  --accent-text: #04140a;
+}
