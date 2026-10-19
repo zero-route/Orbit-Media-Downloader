@@ -21,47 +21,65 @@ export function useResolve() {
     setDetail(undefined);
   }, []);
 
-  const resolve = useCallback(async (url: string) => {
-    controller.current?.abort();
+  const resolve = useCallback(
+    async (
+      url: string,
+      options: { silent?: boolean } = {}
+    ): Promise<MediaResult | null> => {
+      const silent = Boolean(options.silent);
 
-    const current = new AbortController();
-    controller.current = current;
+      controller.current?.abort();
 
-    setStatus("loading");
-    setError(null);
-    setDetail(undefined);
+      const current = new AbortController();
+      controller.current = current;
 
-    try {
-      const response = await fetch(
-        `/api/resolve?url=${encodeURIComponent(url)}`,
-        { signal: current.signal, cache: "no-store" }
-      );
-      const json = (await response.json()) as ResolveResponse;
-
-      if (current.signal.aborted) {
-        return;
+      if (!silent) {
+        setStatus("loading");
+        setError(null);
+        setDetail(undefined);
       }
 
-      if (json.ok) {
-        setData(json.data);
-        setStatus("ready");
-        return;
-      }
+      try {
+        const response = await fetch(
+          `/api/resolve?url=${encodeURIComponent(url)}`,
+          { signal: current.signal, cache: "no-store" }
+        );
+        const json = (await response.json()) as ResolveResponse;
 
-      setData(null);
-      setError(json.error);
-      setDetail(json.detail);
-      setStatus("error");
-    } catch {
-      if (current.signal.aborted) {
-        return;
-      }
+        if (current.signal.aborted) {
+          return null;
+        }
 
-      setData(null);
-      setError("Koneksi bermasalah, coba lagi.");
-      setStatus("error");
-    }
-  }, []);
+        if (json.ok) {
+          setData(json.data);
+          setStatus("ready");
+          return json.data;
+        }
+
+        if (!silent) {
+          setData(null);
+          setError(json.error);
+          setDetail(json.detail);
+          setStatus("error");
+        }
+
+        return null;
+      } catch {
+        if (current.signal.aborted) {
+          return null;
+        }
+
+        if (!silent) {
+          setData(null);
+          setError("Koneksi bermasalah, coba lagi.");
+          setStatus("error");
+        }
+
+        return null;
+      }
+    },
+    []
+  );
 
   return { status, data, error, detail, resolve, reset };
 }
