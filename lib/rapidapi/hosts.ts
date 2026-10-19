@@ -5,10 +5,16 @@ export type HostConfig = {
   path: string;
 };
 
-const DEFAULTS: Partial<Record<PlatformId, HostConfig>> = {
-  tiktok: {
+export type HostRole = "main" | "details";
+
+const DEFAULTS: Record<string, HostConfig> = {
+  "tiktok:main": {
     host: "instagram-tiktok-youtube-downloader.p.rapidapi.com",
     path: "/fetch",
+  },
+  "tiktok:details": {
+    host: "best-tiktok-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/videos/details",
   },
 };
 
@@ -22,22 +28,31 @@ function normalizePath(value: string) {
   return value.startsWith("/") ? value : `/${value}`;
 }
 
-export function hostConfig(platform: PlatformId): HostConfig {
-  const base = DEFAULTS[platform];
+export function hostConfig(
+  platform: PlatformId,
+  role: HostRole = "main"
+): HostConfig {
+  const base = DEFAULTS[`${platform}:${role}`];
   const key = platform.toUpperCase();
+  const prefix = role === "main" ? `RAPIDAPI_${key}` : `RAPIDAPI_${key}_DETAILS`;
 
-  const legacyHost =
-    platform === "tiktok" ? clean(process.env.RAPIDAPI_DOWNLOAD_HOST) : undefined;
-  const legacyPath =
-    platform === "tiktok" ? clean(process.env.RAPIDAPI_PATH) : undefined;
+  let legacyHost: string | undefined;
+  let legacyPath: string | undefined;
 
-  const host =
-    clean(process.env[`RAPIDAPI_${key}_HOST`]) ?? legacyHost ?? base?.host;
-  const path =
-    clean(process.env[`RAPIDAPI_${key}_PATH`]) ?? legacyPath ?? base?.path;
+  if (platform === "tiktok" && role === "main") {
+    legacyHost = clean(process.env.RAPIDAPI_DOWNLOAD_HOST);
+    legacyPath = clean(process.env.RAPIDAPI_PATH);
+  }
+
+  if (platform === "tiktok" && role === "details") {
+    legacyHost = clean(process.env.RAPIDAPI_DETAILS_HOST);
+  }
+
+  const host = clean(process.env[`${prefix}_HOST`]) ?? legacyHost ?? base?.host;
+  const path = clean(process.env[`${prefix}_PATH`]) ?? legacyPath ?? base?.path;
 
   if (!host || !path) {
-    throw new Error(`Host RapidAPI untuk ${platform} belum diatur.`);
+    throw new Error(`Host RapidAPI untuk ${platform} (${role}) belum diatur.`);
   }
 
   return { host, path: normalizePath(path) };
