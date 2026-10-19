@@ -57,3 +57,32 @@ export function formatBytes(bytes?: number) {
 
   return `${text.replace(".", ",")} ${units[index]}`;
 }
+
+const HASHTAG_SOURCE = "#[\\p{L}\\p{N}_]+";
+
+export function splitCaption(raw?: string) {
+  if (!raw) {
+    return { text: "", tags: [] as string[] };
+  }
+
+  const pattern = new RegExp(HASHTAG_SOURCE, "gu");
+  const seen = new Set<string>();
+  const tags: string[] = [];
+
+  for (const match of raw.match(pattern) ?? []) {
+    const key = match.toLowerCase();
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      tags.push(match);
+    }
+  }
+
+  const text = raw
+    .replace(new RegExp(HASHTAG_SOURCE, "gu"), " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .trim();
+
+  return { text, tags };
+}
