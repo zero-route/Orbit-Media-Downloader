@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type DownloadFile = {
   url: string;
@@ -10,6 +10,7 @@ export type DownloadFile = {
 export type SaveOutcome = "ok" | "expired" | "failed" | "mock";
 
 const PROXY_PREFIX = "/api/download";
+const DONE_VISIBLE_MS = 4000;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -19,44 +20,53 @@ function isProxy(url: string) {
   return url.startsWith(PROXY_PREFIX);
 }
 
-function withParams(url: string, params: Record<string, string>) {
-  const next = new URL(url, window.location.origin);
+type Fetched =
+  | { state: "ok"; blob: Blob }
+  | { state: "expired" }
+  | { state: "failed" };
 
-  for (const [key, value] of Object.entries(params)) {
-    next.searchParams.set(key, value);
-  }
-
-  return `${next.pathname}${next.search}`;
-}
-
-async function probe(url: string): Promise<SaveOutcome> {
+async function fetchFile(url: string): Promise<Fetched> {
   try {
-    const response = await fetch(withParams(url, { c: "1" }), {
-      cache: "no-store",
-    });
-
-    if (response.ok) {
-      return "ok";
-    }
+    const response = await fetch(url, { cache: "no-store" });
 
     if (response.status === 410 || response.status === 403) {
-      return "expired";
+      return { state: "expired" };
     }
 
-    return "failed";
+    if (!response.ok) {
+      return { state: "failed" };
+    }
+
+    const blob = await response.blob();
+
+    if (blob.size === 0 || blob.type.includes("json")) {
+      return { state: "failed" };
+    }
+
+    return { state: "ok", blob };
   } catch {
-    return "failed";
+    return { state: "failed" };
   }
 }
 
-function trigger(file: DownloadFile) {
-  const href = isProxy(file.url)
-    ? withParams(file.url, { d: "1", n: file.filename })
-    : file.url;
-
+function saveBlob(blob: Blob, filename: string) {
+  const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
 
-  anchor.href = href;
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+}
+
+function saveDirect(file: DownloadFile) {
+  const anchor = document.createElement("a");
+
+  anchor.href = file.url;
   anchor.download = file.filename;
   anchor.rel = "noopener";
   document.body.appendChild(anchor);
@@ -66,8 +76,33 @@ function trigger(file: DownloadFile) {
 
 export function useDownload() {
   const [notice, setNotice] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const clearNotice = useCallback(() => setNotice(null), []);
+  useEffect(() => {
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
+  }, []);
+
+  const clearNotice = useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+
+    setNotice(null);
+  }, []);
+
+  const flash = useCallback((message: string) => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+
+    setNotice(message);
+    timer.current = setTimeout(() => setNotice(null), DONE_VISIBLE_MS);
+  }, []);
 
   const saveMany = useCallback(
     async (files: DownloadFile[]): Promise<SaveOutcome> => {
@@ -80,30 +115,52 @@ export function useDownload() {
         return "mock";
       }
 
-      if (isProxy(files[0].url)) {
-        const outcome = await probe(files[0].url);
+      const total = files.length;
 
-        if (outcome === "expired") {
+      for (let index = 0; index < total; index += 1) {
+        const file = files[index];
+
+        setNotice(
+          total > 1 ? `Mengunduh ${index + 1} dari ${total}...` : "Mengunduh..."
+        );
+
+        if (!isProxy(file.url)) {
+          saveDirect(file);
+          continue;
+        }
+
+        const result = await fetchFile(file.url);
+
+        if (result.state === "expired" && index === 0) {
+          clearNotice();
           return "expired";
         }
 
-        if (outcome === "failed") {
-          setNotice("Gagal mengunduh, coba lagi.");
+        if (result.state !== "ok") {
+          setNotice(
+            total > 1
+              ? `Gagal mengunduh file ${index + 1} dari ${total}. Coba lagi.`
+              : "Gagal mengunduh, coba lagi."
+          );
           return "failed";
         }
-      }
 
-      for (let index = 0; index < files.length; index += 1) {
-        trigger(files[index]);
+        saveBlob(result.blob, file.filename);
 
-        if (index < files.length - 1) {
-          await wait(400);
+        if (index < total - 1) {
+          await wait(350);
         }
       }
+
+      flash(
+        total > 1
+          ? `${total} file selesai diunduh. Cek folder Unduhan.`
+          : "Selesai diunduh. Cek folder Unduhan."
+      );
 
       return "ok";
     },
-    []
+    [clearNotice, flash]
   );
 
   const save = useCallback(
