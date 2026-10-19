@@ -45,6 +45,8 @@ export type Stats = {
   comments?: number;
   shares?: number;
   views?: number;
+  saves?: number;
+  reposts?: number;
 };
 
 export type MediaResult = {
