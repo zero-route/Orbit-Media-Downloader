@@ -9,22 +9,33 @@ import MediaStage from "@/components/MediaStage";
 import QualityPicker from "@/components/QualityPicker";
 import StatsGrid from "@/components/StatsGrid";
 import { useClipboard } from "@/hooks/useClipboard";
-import { useDownload } from "@/hooks/useDownload";
+import { useDownload, type DownloadFile } from "@/hooks/useDownload";
 import { fileName } from "@/lib/media/filename";
 import type { MediaResult } from "@/lib/providers/types";
 
 type Props = {
   result: MediaResult;
+  onRefresh?: () => Promise<MediaResult | null>;
 };
 
-export default function ResultCard({ result }: Props) {
+const REFRESH_MARGIN_MS = 60_000;
+
+function isStale(result: MediaResult) {
+  return (
+    typeof result.expiresAt === "number" &&
+    Date.now() > result.expiresAt - REFRESH_MARGIN_MS
+  );
+}
+
+export default function ResultCard({ result, onRefresh }: Props) {
   const [qualityId, setQualityId] = useState(result.videos[0]?.id ?? "");
   const [photoIndex, setPhotoIndex] = useState(0);
   const [selected, setSelected] = useState<Set<number>>(
     () => new Set(result.photos.map((_, index) => index))
   );
   const [info, setInfo] = useState<string | null>(null);
-  const { notice, setNotice, save, saveMany } = useDownload();
+  const [working, setWorking] = useState(false);
+  const { notice, setNotice, saveMany } = useDownload();
   const clipboard = useClipboard();
 
   useEffect(() => {
@@ -58,47 +69,90 @@ export default function ResultCard({ result }: Props) {
 
   const selectedPhotos = result.photos.filter((_, index) => selected.has(index));
 
-  const handlePrimary = () => {
+  const run = async (build: (current: MediaResult) => DownloadFile[]) => {
+    if (working) {
+      return;
+    }
+
     setNotice(null);
+    setWorking(true);
 
-    if (result.kind === "video" && quality) {
-      save({
-        url: quality.url,
-        filename: fileName(result, quality.ext, quality.label),
-      });
-      return;
-    }
+    try {
+      let current = result;
 
-    if (result.kind === "audio" && result.audio) {
-      save({
-        url: result.audio.url,
-        filename: fileName(result, result.audio.ext),
-      });
-      return;
-    }
+      if (onRefresh && isStale(current)) {
+        current = (await onRefresh()) ?? current;
+      }
 
-    if (result.kind === "photo") {
-      void saveMany(
-        selectedPhotos.map((photo, index) => ({
-          url: photo.url,
-          filename: fileName(result, photo.ext, String(index + 1)),
-        }))
-      );
+      let outcome = await saveMany(build(current));
+
+      if (outcome === "expired") {
+        const fresh = onRefresh ? await onRefresh() : null;
+
+        outcome = fresh ? await saveMany(build(fresh)) : "failed";
+
+        if (outcome === "expired" || outcome === "failed") {
+          setNotice("Tautan kedaluwarsa, tempel ulang link-nya.");
+        }
+      }
+    } finally {
+      setWorking(false);
     }
   };
 
-  const handleAudio = () => {
-    setNotice(null);
+  const handlePrimary = () => {
+    void run((current) => {
+      if (current.kind === "video") {
+        const item =
+          current.videos.find((entry) => entry.id === qualityId) ??
+          current.videos[0];
 
-    if (result.audio) {
-      save({
-        url: result.audio.url,
-        filename: fileName(result, result.audio.ext),
-      });
+        return item
+          ? [
+              {
+                url: item.url,
+                filename: fileName(current, item.ext, item.label),
+              },
+            ]
+          : [];
+      }
+
+      if (current.kind === "audio") {
+        return current.audio
+          ? [
+              {
+                url: current.audio.url,
+                filename: fileName(current, current.audio.ext),
+              },
+            ]
+          : [];
+      }
+
+      return current.photos
+        .filter((_, index) => selected.has(index))
+        .map((photo, position) => ({
+          url: photo.url,
+          filename: fileName(current, photo.ext, String(position + 1)),
+        }));
+    });
+  };
+
+  const handleAudio = () => {
+    if (!result.audio) {
+      setNotice("Audio tidak tersedia untuk konten ini.");
       return;
     }
 
-    setNotice("Unduh audio belum aktif di tahap ini.");
+    void run((current) =>
+      current.audio
+        ? [
+            {
+              url: current.audio.url,
+              filename: fileName(current, current.audio.ext),
+            },
+          ]
+        : []
+    );
   };
 
   const handleCopy = async () => {
@@ -185,7 +239,9 @@ export default function ResultCard({ result }: Props) {
 
         <ActionBar
           primaryLabel={primaryLabel}
-          busy={result.kind === "photo" && selectedPhotos.length === 0}
+          busy={
+            working || (result.kind === "photo" && selectedPhotos.length === 0)
+          }
           onPrimary={handlePrimary}
           onAudio={showAudio ? handleAudio : undefined}
           onCopy={result.caption ? handleCopy : undefined}
