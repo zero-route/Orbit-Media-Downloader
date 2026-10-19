@@ -3,12 +3,14 @@ import { deadlineIn, rapidJson } from "../../rapidapi/client";
 import { hostConfig } from "../../rapidapi/hosts";
 import { expiryFromNow, proxyPath } from "../../sign";
 import type { DetectedInput, MediaResult, Photo, Provider } from "../types";
+import { fetchDetails } from "./details";
 import { isBackupPayload, normalizeTikTok, type TikTokRaw } from "./normalize";
 import { resolvePostUrl } from "./resolveUrl";
 
 const MAX_ATTEMPTS = 3;
 const TOTAL_BUDGET_MS = 45_000;
 const RETRY_DELAY_MS = 1_200;
+const DETAILS_BUDGET_MS = 25_000;
 
 type Attempt = { raw: TikTokRaw; backup: boolean };
 
@@ -92,7 +94,17 @@ export const tiktokProvider: Provider = async (
   const deadlineAt = deadlineIn(TOTAL_BUDGET_MS);
   const targetUrl = await resolvePostUrl(input.url);
 
-  const raw = await fetchRaw(targetUrl, deadlineAt);
+  const [raw, details] = await Promise.all([
+    fetchRaw(targetUrl, deadlineAt),
+    fetchDetails(targetUrl, input.url, deadlineIn(DETAILS_BUDGET_MS)).catch(
+      () => null
+    ),
+  ]);
+
+  const rawHasStats = [raw.likes, raw.comments, raw.shares, raw.views].some(
+    (value) => (value ?? 0) > 0
+  );
+  const fromRaw = (value?: number) => (rawHasStats ? value : undefined);
   const expires = expiryFromNow();
   const wrap = (url?: string) => (url ? proxyPath(url, expires) : undefined);
 
@@ -112,17 +124,19 @@ export const tiktokProvider: Provider = async (
     kind: isPhoto ? "photo" : "video",
     sourceUrl: input.url,
     postId: raw.id,
-    caption: raw.description || undefined,
+    caption: raw.description || details?.description || undefined,
     author: {
-      name: raw.nickname,
-      username: raw.username,
-      avatarUrl: wrap(raw.avatar),
+      name: raw.nickname ?? details?.nickname,
+      username: raw.username ?? details?.username,
+      avatarUrl: wrap(raw.avatar ?? details?.avatar),
     },
     stats: {
-      likes: raw.likes,
-      comments: raw.comments,
-      shares: raw.shares,
-      views: raw.views,
+      likes: details?.likes ?? fromRaw(raw.likes),
+      comments: details?.comments ?? fromRaw(raw.comments),
+      shares: details?.shares ?? fromRaw(raw.shares),
+      views: details?.views ?? fromRaw(raw.views),
+      saves: details?.saves,
+      reposts: details?.reposts,
     },
     durationSeconds: raw.durationSeconds,
     coverUrl: wrap(raw.cover),
