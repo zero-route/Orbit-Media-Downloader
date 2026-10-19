@@ -118,7 +118,11 @@ export default function Home() {
         ) : null}
 
         {status === "ready" && data ? (
-          <ResultCard key={data.sourceUrl} result={data} />
+          <ResultCard
+            key={data.sourceUrl}
+            result={data}
+            onRefresh={() => resolve(data.sourceUrl, { silent: true })}
+          />
         ) : null}
       </main>
     </div>
