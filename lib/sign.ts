@@ -1,0 +1,63 @@
+import { createHmac, timingSafeEqual } from "crypto";
+import { AppError } from "./errors";
+
+export const LINK_TTL_SECONDS = 25 * 60;
+
+function secret() {
+  const value = process.env.SIGNING_SECRET?.trim();
+
+  if (!value) {
+    throw new AppError("SIGNING_SECRET belum dikonfigurasi di environment.", 500);
+  }
+
+  return value;
+}
+
+export function expiryFromNow(ttlSeconds = LINK_TTL_SECONDS) {
+  return Math.floor(Date.now() / 1000) + ttlSeconds;
+}
+
+function digest(url: string, expires: number) {
+  return createHmac("sha256", secret())
+    .update(`${expires}\n${url}`)
+    .digest("base64url");
+}
+
+export type VerifyState = "ok" | "invalid" | "expired";
+
+export function verifyUrl(
+  url: string,
+  expires: number,
+  signature: string
+): VerifyState {
+  if (!url || !Number.isFinite(expires) || !signature) {
+    return "invalid";
+  }
+
+  try {
+    const expected = Buffer.from(digest(url, expires));
+    const received = Buffer.from(signature);
+
+    if (expected.length !== received.length) {
+      return "invalid";
+    }
+
+    if (!timingSafeEqual(expected, received)) {
+      return "invalid";
+    }
+  } catch {
+    return "invalid";
+  }
+
+  return expires * 1000 < Date.now() ? "expired" : "ok";
+}
+
+export function proxyPath(url: string, expires: number) {
+  const params = new URLSearchParams();
+
+  params.set("u", url);
+  params.set("e", String(expires));
+  params.set("s", digest(url, expires));
+
+  return `/api/download?${params.toString()}`;
+}
