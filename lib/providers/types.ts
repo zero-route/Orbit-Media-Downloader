@@ -60,6 +60,7 @@ export type MediaResult = {
   videos: Quality[];
   photos: Photo[];
   audio?: AudioTrack;
+  expiresAt?: number;
 };
 
 export type DetectedInput = {
