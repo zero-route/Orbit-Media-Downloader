@@ -10,6 +10,8 @@ const ITEMS: Array<[keyof Stats, string]> = [
   ["comments", "Komentar"],
   ["shares", "Bagikan"],
   ["views", "Tonton"],
+  ["saves", "Simpan"],
+  ["reposts", "Posting ulang"],
 ];
 
 export default function StatsGrid({ stats }: Props) {
@@ -24,7 +26,7 @@ export default function StatsGrid({ stats }: Props) {
   }
 
   return (
-    <div className="o-stats">
+    <div className="o-stats" data-count={visible.length}>
       {visible.map(([key, label]) => (
         <div key={key} className="o-stat">
           <strong>{formatCount(stats[key])}</strong>
