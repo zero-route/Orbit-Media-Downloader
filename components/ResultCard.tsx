@@ -176,11 +176,14 @@ export default function ResultCard({
     setInfo(ok ? "Keterangan disalin." : "Tidak bisa menyalin keterangan.");
   };
 
+  const hasClips = result.photos.some((photo) => photo.isVideo);
+  const unit = hasClips ? "file" : "foto";
+
   const primaryLabel =
     result.kind === "photo"
       ? selectedPhotos.length > 0
-        ? `Unduh ${selectedPhotos.length} foto`
-        : "Pilih foto"
+        ? `Unduh ${selectedPhotos.length} ${unit}`
+        : `Pilih ${unit}`
       : result.kind === "audio"
       ? "Unduh MP3"
       : "Unduh";
