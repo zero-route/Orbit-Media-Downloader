@@ -187,6 +187,7 @@ export const instagramDetails: DetailsProvider = async (
       likes: details.likes,
       comments: details.comments,
       views: details.views,
+      reposts: details.reposts,
     },
   };
 };
