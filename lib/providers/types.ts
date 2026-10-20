@@ -63,6 +63,13 @@ export type MediaResult = {
   photos: Photo[];
   audio?: AudioTrack;
   expiresAt?: number;
+  detailsPending?: boolean;
+};
+
+export type MediaPatch = {
+  caption?: string;
+  author?: Author;
+  stats?: Stats;
 };
 
 export type DetectedInput = {
@@ -73,6 +80,14 @@ export type DetectedInput = {
 
 export type Provider = (input: DetectedInput) => Promise<MediaResult>;
 
+export type DetailsProvider = (
+  input: DetectedInput
+) => Promise<MediaPatch | null>;
+
 export type ResolveResponse =
   | { ok: true; data: MediaResult }
   | { ok: false; error: string; detail?: string };
+
+export type DetailsResponse =
+  | { ok: true; data: MediaPatch }
+  | { ok: false; error: string };
