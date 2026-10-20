@@ -26,6 +26,7 @@ export type Photo = {
   height?: number;
   ext: string;
   isVideo?: boolean;
+  previewUrl?: string;
 };
 
 export type AudioTrack = {
@@ -71,6 +72,7 @@ export type MediaResult = {
 
 export type MediaPatch = {
   caption?: string;
+  coverUrl?: string;
   author?: Author;
   stats?: Stats;
 };
