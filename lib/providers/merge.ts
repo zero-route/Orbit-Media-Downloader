@@ -33,6 +33,7 @@ export function mergeDetails(
   return {
     ...base,
     caption: base.caption || patch.caption,
+    coverUrl: base.coverUrl ?? patch.coverUrl,
     author,
     stats,
   };
