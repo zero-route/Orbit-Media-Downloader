@@ -3,16 +3,19 @@ import { getPlatform } from "../detect/platforms";
 import type { DetailsProvider, PlatformId, Provider } from "./types";
 import { instagramDetails, instagramProvider } from "./instagram";
 import { mockProvider } from "./mock";
+import { pinterestDetails, pinterestProvider } from "./pinterest";
 import { tiktokDetails, tiktokProvider } from "./tiktok";
 
 const REAL: Partial<Record<PlatformId, Provider>> = {
   tiktok: tiktokProvider,
   instagram: instagramProvider,
+  pinterest: pinterestProvider,
 };
 
 const DETAILS: Partial<Record<PlatformId, DetailsProvider>> = {
   tiktok: tiktokDetails,
   instagram: instagramDetails,
+  pinterest: pinterestDetails,
 };
 
 export function getProvider(platform: PlatformId): Provider {
