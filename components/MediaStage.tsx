@@ -12,6 +12,8 @@ import {
 import { formatDuration } from "@/lib/text";
 import type { MediaResult } from "@/lib/providers/types";
 
+const DEFAULT_RATIO = 9 / 16;
+
 type Props = {
   result: MediaResult;
   videoUrl?: string;
@@ -30,6 +32,17 @@ export default function MediaStage({
   onToggle,
 }: Props) {
   const [playing, setPlaying] = useState(false);
+  const [ratio, setRatio] = useState<number | null>(null);
+
+  const learnRatio = (width: number, height: number) => {
+    if (width > 0 && height > 0) {
+      setRatio((current) => current ?? width / height);
+    }
+  };
+
+  const wrapStyle = {
+    "--ar": result.kind === "audio" ? 1 : ratio ?? DEFAULT_RATIO,
+  } as React.CSSProperties;
 
   if (result.kind === "photo") {
     const total = result.photos.length;
@@ -40,10 +53,15 @@ export default function MediaStage({
     };
 
     return (
-      <div className="o-stage-wrap">
+      <div className="o-stage-wrap" style={wrapStyle}>
         <div className="o-stage is-photo">
           <div className="o-stage-frame">
-            <SmartImage src={current?.url} className="o-stage-img" />
+            <SmartImage
+              key={current?.url}
+              src={current?.url}
+              className="o-stage-img"
+              onSize={learnRatio}
+            />
             {total > 1 ? (
               <>
                 <span className="o-badge is-top">
@@ -113,7 +131,7 @@ export default function MediaStage({
 
   if (result.kind === "audio") {
     return (
-      <div className="o-stage-wrap">
+      <div className="o-stage-wrap" style={wrapStyle}>
         <div className="o-stage is-audio">
           <div className="o-stage-frame">
             <SmartImage src={result.coverUrl} className="o-stage-img" />
@@ -134,7 +152,7 @@ export default function MediaStage({
   const canPlay = Boolean(videoUrl) && !videoUrl?.startsWith("about:");
 
   return (
-    <div className="o-stage-wrap">
+    <div className="o-stage-wrap" style={wrapStyle}>
       <div className="o-stage is-video">
         <div className="o-stage-frame">
           {playing && canPlay ? (
@@ -145,10 +163,21 @@ export default function MediaStage({
               controls
               autoPlay
               playsInline
+              onLoadedMetadata={(event) => {
+                const video = event.currentTarget;
+
+                if (video.videoWidth > 0 && video.videoHeight > 0) {
+                  setRatio(video.videoWidth / video.videoHeight);
+                }
+              }}
             />
           ) : (
             <>
-              <SmartImage src={result.coverUrl} className="o-stage-img" />
+              <SmartImage
+                src={result.coverUrl}
+                className="o-stage-img"
+                onSize={learnRatio}
+              />
               <button
                 type="button"
                 className="o-play"
