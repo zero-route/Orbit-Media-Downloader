@@ -28,6 +28,7 @@ export function baseName(result: MediaResult) {
 
 export function fileName(result: MediaResult, ext: string, suffix?: string) {
   const base = baseName(result);
+  const tail = suffix ? clean(suffix) : "";
 
-  return `${base}${suffix ? `_${suffix}` : ""}.${ext}`;
+  return `${base}${tail ? `_${tail}` : ""}.${ext}`;
 }
