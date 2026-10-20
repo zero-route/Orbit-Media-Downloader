@@ -416,7 +416,40 @@
   gap: 22px;
 }
 
+.o-profile {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+  overflow: hidden;
+}
+
+.o-profile:empty {
+  display: none;
+}
+
+.o-profile > .o-divider:first-child {
+  display: none;
+}
+
+.o-profile-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.o-divider {
+  height: 1px;
+  margin: 0 20px;
+  background: var(--line);
+}
+
 .o-author {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -425,8 +458,8 @@
 .o-avatar {
   position: relative;
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   overflow: hidden;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), #a855f7);
@@ -443,19 +476,54 @@
 .o-author-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
 .o-author-text strong {
+  overflow: hidden;
   font-size: 17px;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .o-author-text span {
+  overflow: hidden;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.o-visit {
+  flex: none;
+  height: 46px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .o-visit:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text);
+  }
+}
+
+.o-profile-caption {
+  padding: 16px 20px 18px;
 }
 
 .o-track {
@@ -525,41 +593,57 @@
 }
 
 .o-stats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 22px;
-}
-
-.o-stats[data-count="5"],
-.o-stats[data-count="6"] {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px 12px;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  padding: 4px 20px;
 }
 
 .o-stat {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 6px;
   color: var(--muted);
 }
 
-.o-stat svg {
-  flex: none;
+.o-stat.has-r {
+  border-right: 1px solid var(--line);
 }
 
-.o-stat strong {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 500;
+.o-stat.has-b {
+  border-bottom: 1px solid var(--line);
+}
+
+.o-stat-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--text-soft);
 }
 
+.o-stat-top strong {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.o-stat > span {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .o-stat-skel {
-  width: 62px;
+  width: 56px;
   height: 18px;
   border-radius: 9px;
+}
+
+.o-stat-skel.is-small {
+  width: 44px;
+  height: 12px;
 }
 
 .o-segment {
@@ -864,9 +948,26 @@
     gap: 14px;
   }
 
+  .o-profile {
+    border-radius: 22px;
+  }
+
+  .o-profile-head {
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .o-divider {
+    margin: 0 16px;
+  }
+
   .o-avatar {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .o-author {
+    gap: 12px;
   }
 
   .o-author-text strong {
@@ -877,17 +978,42 @@
     font-size: 12px;
   }
 
+  .o-visit {
+    height: 42px;
+    padding: 0 14px;
+    gap: 8px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .o-profile-caption {
+    padding: 14px 16px 16px;
+  }
+
   .o-caption p {
     font-size: 14px;
     line-height: 1.5;
   }
 
   .o-stats {
-    gap: 10px 18px;
+    padding: 2px 16px;
   }
 
-  .o-stat strong {
-    font-size: 14px;
+  .o-stat {
+    gap: 4px;
+    padding: 14px 4px;
+  }
+
+  .o-stat-top {
+    gap: 6px;
+  }
+
+  .o-stat-top strong {
+    font-size: 16px;
+  }
+
+  .o-stat > span {
+    font-size: 12px;
   }
 
   .o-segment {
