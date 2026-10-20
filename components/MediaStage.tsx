@@ -58,7 +58,7 @@ export default function MediaStage({
           <div className="o-stage-frame">
             <SmartImage
               key={current?.url}
-              src={current?.url}
+              src={current?.isVideo ? current.thumbnailUrl : current?.url}
               className="o-stage-img"
               onSize={learnRatio}
             />
@@ -66,6 +66,7 @@ export default function MediaStage({
               <>
                 <span className="o-badge is-top">
                   {photoIndex + 1} / {total}
+                  {current?.isVideo ? " · Video" : ""}
                 </span>
                 <button
                   type="button"
