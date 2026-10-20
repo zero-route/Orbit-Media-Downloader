@@ -38,6 +38,8 @@ export type Author = {
   name?: string;
   username?: string;
   avatarUrl?: string;
+  followers?: number;
+  profileUrl?: string;
 };
 
 export type Stats = {
