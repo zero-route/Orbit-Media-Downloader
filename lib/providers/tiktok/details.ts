@@ -12,6 +12,7 @@ export type TikTokDetails = {
   username?: string;
   nickname?: string;
   avatar?: string;
+  followers?: number;
   description?: string;
 };
 
@@ -34,6 +35,7 @@ function parseDetails(payload: unknown): TikTokDetails | null {
   }
 
   const author = isObj(root.author) ? root.author : undefined;
+  const authorStats = isObj(root.author_stats) ? root.author_stats : undefined;
 
   return {
     views: count(stats.play_count),
@@ -45,6 +47,7 @@ function parseDetails(payload: unknown): TikTokDetails | null {
     username: str(author?.username),
     nickname: str(author?.nickname),
     avatar: str(author?.profile_picture),
+    followers: count(authorStats?.follower_count),
     description: str(root.description),
   };
 }
