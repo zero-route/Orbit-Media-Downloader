@@ -2,29 +2,21 @@ import { AppError } from "../../errors";
 import { deadlineIn, rapidJson } from "../../rapidapi/client";
 import { hostConfig } from "../../rapidapi/hosts";
 import { expiryFromNow, proxyPath } from "../../sign";
-import type { DetectedInput, MediaResult, Photo, Provider } from "../types";
+import type {
+  DetailsProvider,
+  DetectedInput,
+  MediaPatch,
+  MediaResult,
+  Photo,
+  Provider,
+} from "../types";
 import { fetchDetails } from "./details";
-import { isBackupPayload, normalizeTikTok, type TikTokRaw } from "./normalize";
+import { normalizeTikTok, type TikTokRaw } from "./normalize";
 import { resolvePostUrl } from "./resolveUrl";
 
-const MAX_ATTEMPTS = 3;
-const TOTAL_BUDGET_MS = 45_000;
-const RETRY_DELAY_MS = 1_200;
+const MAIN_BUDGET_MS = 40_000;
 const DETAILS_BUDGET_MS = 25_000;
-
-type Attempt = { raw: TikTokRaw; backup: boolean };
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function score(attempt: Attempt) {
-  return (
-    (attempt.backup ? 0 : 4) +
-    (attempt.raw.avatar ? 2 : 0) +
-    (attempt.raw.description ? 1 : 0)
-  );
-}
+const MIN_RETRY_WINDOW_MS = 8_000;
 
 function photoExt(url: string) {
   if (/\.webp(\?|$)/i.test(url)) return "webp";
@@ -33,56 +25,25 @@ function photoExt(url: string) {
   return "jpg";
 }
 
-async function fetchRaw(targetUrl: string, deadlineAt: number) {
+async function fetchRaw(targetUrl: string, deadlineAt: number): Promise<TikTokRaw> {
   const { host, path } = hostConfig("tiktok");
-  let best: Attempt | null = null;
-  let lastError: unknown = null;
 
-  for (let index = 0; index < MAX_ATTEMPTS; index += 1) {
-    if (index > 0) {
-      if (deadlineAt - Date.now() < 6_000) {
-        break;
-      }
-
-      await sleep(RETRY_DELAY_MS);
-    }
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const payload = await rapidJson({
+      host,
+      path,
+      query: { url: targetUrl },
+      deadlineAt,
+      retries: 3,
+    });
 
     try {
-      const payload = await rapidJson({
-        host,
-        path,
-        query: { url: targetUrl },
-        deadlineAt,
-        retries: 2,
-      });
-
-      const attempt: Attempt = {
-        raw: normalizeTikTok(payload, targetUrl),
-        backup: isBackupPayload(payload),
-      };
-
-      if (!best || score(attempt) > score(best)) {
-        best = attempt;
-      }
-
-      if (!attempt.backup) {
-        break;
-      }
+      return normalizeTikTok(payload, targetUrl);
     } catch (error) {
-      lastError = error;
-
-      if (error instanceof AppError && error.status < 500 && error.status !== 429) {
-        break;
+      if (attempt === 1 || deadlineAt - Date.now() < MIN_RETRY_WINDOW_MS) {
+        throw error;
       }
     }
-  }
-
-  if (best) {
-    return best.raw;
-  }
-
-  if (lastError instanceof AppError) {
-    throw lastError;
   }
 
   throw new AppError("Gagal mengambil data dari TikTok.", 502);
@@ -91,24 +52,21 @@ async function fetchRaw(targetUrl: string, deadlineAt: number) {
 export const tiktokProvider: Provider = async (
   input: DetectedInput
 ): Promise<MediaResult> => {
-  const deadlineAt = deadlineIn(TOTAL_BUDGET_MS);
+  const startedAt = Date.now();
+  const deadlineAt = deadlineIn(MAIN_BUDGET_MS);
   const targetUrl = await resolvePostUrl(input.url);
+  const raw = await fetchRaw(targetUrl, deadlineAt);
 
-  const [raw, details] = await Promise.all([
-    fetchRaw(targetUrl, deadlineAt),
-    fetchDetails(targetUrl, input.url, deadlineIn(DETAILS_BUDGET_MS)).catch(
-      () => null
-    ),
-  ]);
+  console.info(`[tiktok] media ${Date.now() - startedAt}ms`);
+
+  const expires = expiryFromNow();
+  const wrap = (url?: string) => (url ? proxyPath(url, expires) : undefined);
+  const isPhoto = raw.photos.length > 0;
 
   const rawHasStats = [raw.likes, raw.comments, raw.shares, raw.views].some(
     (value) => (value ?? 0) > 0
   );
   const fromRaw = (value?: number) => (rawHasStats ? value : undefined);
-  const expires = expiryFromNow();
-  const wrap = (url?: string) => (url ? proxyPath(url, expires) : undefined);
-
-  const isPhoto = raw.photos.length > 0;
 
   const photos: Photo[] = raw.photos.map((url, index) => ({
     id: String(index + 1),
@@ -124,25 +82,24 @@ export const tiktokProvider: Provider = async (
     kind: isPhoto ? "photo" : "video",
     sourceUrl: input.url,
     postId: raw.id,
-    caption: raw.description || details?.description || undefined,
+    caption: raw.description || undefined,
     author: {
-      name: raw.nickname ?? details?.nickname,
-      username: raw.username ?? details?.username,
-      avatarUrl: wrap(raw.avatar ?? details?.avatar),
+      name: raw.nickname,
+      username: raw.username,
+      avatarUrl: wrap(raw.avatar),
     },
     stats: {
-      likes: details?.likes ?? fromRaw(raw.likes),
-      comments: details?.comments ?? fromRaw(raw.comments),
-      shares: details?.shares ?? fromRaw(raw.shares),
-      views: details?.views ?? fromRaw(raw.views),
-      saves: details?.saves,
-      reposts: details?.reposts,
+      likes: fromRaw(raw.likes),
+      comments: fromRaw(raw.comments),
+      shares: fromRaw(raw.shares),
+      views: fromRaw(raw.views),
     },
     durationSeconds: raw.durationSeconds,
     coverUrl: wrap(raw.cover),
-    videos: !isPhoto && videoUrl
-      ? [{ id: "original", label: "Asli", ext: "mp4", url: videoUrl }]
-      : [],
+    videos:
+      !isPhoto && videoUrl
+        ? [{ id: "original", label: "Asli", ext: "mp4", url: videoUrl }]
+        : [],
     photos,
     audio: audioUrl
       ? {
@@ -153,5 +110,40 @@ export const tiktokProvider: Provider = async (
         }
       : undefined,
     expiresAt: expires * 1000,
+    detailsPending: true,
+  };
+};
+
+export const tiktokDetails: DetailsProvider = async (
+  input: DetectedInput
+): Promise<MediaPatch | null> => {
+  const startedAt = Date.now();
+  const deadlineAt = deadlineIn(DETAILS_BUDGET_MS);
+  const targetUrl = await resolvePostUrl(input.url);
+  const details = await fetchDetails(targetUrl, input.url, deadlineAt);
+
+  console.info(`[tiktok] details ${Date.now() - startedAt}ms ok=${Boolean(details)}`);
+
+  if (!details) {
+    return null;
+  }
+
+  const expires = expiryFromNow();
+
+  return {
+    caption: details.description,
+    author: {
+      name: details.nickname,
+      username: details.username,
+      avatarUrl: details.avatar ? proxyPath(details.avatar, expires) : undefined,
+    },
+    stats: {
+      likes: details.likes,
+      comments: details.comments,
+      shares: details.shares,
+      views: details.views,
+      saves: details.saves,
+      reposts: details.reposts,
+    },
   };
 };
