@@ -25,7 +25,10 @@ type Fetched =
   | { state: "expired" }
   | { state: "failed" };
 
-async function fetchFile(url: string): Promise<Fetched> {
+async function fetchFile(
+  url: string,
+  onProgress?: (percent: number) => void
+): Promise<Fetched> {
   try {
     const response = await fetch(url, { cache: "no-store" });
 
@@ -37,13 +40,52 @@ async function fetchFile(url: string): Promise<Fetched> {
       return { state: "failed" };
     }
 
-    const blob = await response.blob();
+    const type = response.headers.get("content-type") ?? "";
 
-    if (blob.size === 0 || blob.type.includes("json")) {
+    if (type.includes("json")) {
       return { state: "failed" };
     }
 
-    return { state: "ok", blob };
+    const total = Number(response.headers.get("content-length")) || 0;
+
+    if (!response.body) {
+      const blob = await response.blob();
+
+      return blob.size > 0 ? { state: "ok", blob } : { state: "failed" };
+    }
+
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let received = 0;
+    let lastPercent = -1;
+
+    for (;;) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      if (value) {
+        chunks.push(value);
+        received += value.length;
+
+        if (total > 0 && onProgress) {
+          const percent = Math.min(99, Math.floor((received / total) * 100));
+
+          if (percent !== lastPercent) {
+            lastPercent = percent;
+            onProgress(percent);
+          }
+        }
+      }
+    }
+
+    if (received === 0) {
+      return { state: "failed" };
+    }
+
+    return { state: "ok", blob: new Blob(chunks as BlobPart[], { type }) };
   } catch {
     return { state: "failed" };
   }
@@ -129,7 +171,11 @@ export function useDownload() {
           continue;
         }
 
-        const result = await fetchFile(file.url);
+        const result = await fetchFile(file.url, (percent) => {
+          if (total === 1) {
+            setNotice(`Mengunduh ${percent}%`);
+          }
+        });
 
         if (result.state === "expired" && index === 0) {
           clearNotice();
