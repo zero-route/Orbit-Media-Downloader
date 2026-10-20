@@ -136,6 +136,7 @@ export const tiktokDetails: DetailsProvider = async (
       name: details.nickname,
       username: details.username,
       avatarUrl: details.avatar ? proxyPath(details.avatar, expires) : undefined,
+      followers: details.followers,
     },
     stats: {
       likes: details.likes,
