@@ -1,11 +1,15 @@
 import { AppError } from "../errors";
 import { getPlatform } from "../detect/platforms";
-import type { PlatformId, Provider } from "./types";
+import type { DetailsProvider, PlatformId, Provider } from "./types";
 import { mockProvider } from "./mock";
-import { tiktokProvider } from "./tiktok";
+import { tiktokDetails, tiktokProvider } from "./tiktok";
 
 const REAL: Partial<Record<PlatformId, Provider>> = {
   tiktok: tiktokProvider,
+};
+
+const DETAILS: Partial<Record<PlatformId, DetailsProvider>> = {
+  tiktok: tiktokDetails,
 };
 
 export function getProvider(platform: PlatformId): Provider {
@@ -25,4 +29,12 @@ export function getProvider(platform: PlatformId): Provider {
       501
     );
   };
+}
+
+export function getDetailsProvider(platform: PlatformId): DetailsProvider | null {
+  if (process.env.ORBIT_MOCK === "1") {
+    return null;
+  }
+
+  return DETAILS[platform] ?? null;
 }
