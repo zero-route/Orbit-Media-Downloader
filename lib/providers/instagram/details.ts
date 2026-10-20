@@ -13,6 +13,7 @@ export type InstagramDetails = {
   likes?: number;
   comments?: number;
   views?: number;
+  reposts?: number;
 };
 
 function count(value: unknown) {
@@ -48,6 +49,7 @@ export function parseDetails(payload: unknown): InstagramDetails | null {
     likes: hidden ? undefined : count(stats?.like_count),
     comments: count(stats?.comment_count),
     views: count(stats?.view_count) ?? count(stats?.play_count),
+    reposts: count(stats?.repost_count),
   };
 }
 
