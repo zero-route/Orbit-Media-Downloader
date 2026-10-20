@@ -16,6 +16,14 @@ const DEFAULTS: Record<string, HostConfig> = {
     host: "best-tiktok-scraper-free-1000-calls.p.rapidapi.com",
     path: "/videos/details",
   },
+  "instagram:main": {
+    host: "best-instagram-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/posts/media",
+  },
+  "instagram:details": {
+    host: "best-instagram-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/posts/details",
+  },
 };
 
 function clean(value: string | undefined) {
