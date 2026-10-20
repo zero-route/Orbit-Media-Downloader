@@ -91,10 +91,12 @@ export default function ResultCard({ result, onRefresh }: Props) {
 
         outcome = fresh ? await saveMany(build(fresh)) : "failed";
 
-        if (outcome === "expired" || outcome === "failed") {
+        if (outcome === "expired") {
           setNotice("Tautan kedaluwarsa, tempel ulang link-nya.");
         }
       }
+    } catch {
+      setNotice("Terjadi kesalahan saat mengunduh, coba lagi.");
     } finally {
       setWorking(false);
     }
@@ -211,34 +213,12 @@ export default function ResultCard({ result, onRefresh }: Props) {
           />
         ) : null}
 
-        {result.kind === "photo" && result.photos.length > 1 ? (
-          <div className="o-selectbar">
-            <span>
-              {selectedPhotos.length} / {result.photos.length} dipilih
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                setSelected(
-                  selectedPhotos.length === result.photos.length
-                    ? new Set()
-                    : new Set(result.photos.map((_, index) => index))
-                )
-              }
-            >
-              {selectedPhotos.length === result.photos.length
-                ? "Kosongkan"
-                : "Pilih semua"}
-            </button>
-          </div>
-        ) : null}
-
         {notice || info ? (
           <Alert tone="info" message={(notice ?? info) as string} />
         ) : null}
 
         <ActionBar
-          primaryLabel={primaryLabel}
+          primaryLabel={working ? "Mengunduh..." : primaryLabel}
           busy={
             working || (result.kind === "photo" && selectedPhotos.length === 0)
           }
