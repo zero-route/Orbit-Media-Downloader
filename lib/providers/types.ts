@@ -25,6 +25,7 @@ export type Photo = {
   width?: number;
   height?: number;
   ext: string;
+  isVideo?: boolean;
 };
 
 export type AudioTrack = {
