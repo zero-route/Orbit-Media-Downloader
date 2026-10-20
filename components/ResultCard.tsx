@@ -15,6 +15,7 @@ import type { MediaResult } from "@/lib/providers/types";
 
 type Props = {
   result: MediaResult;
+  statsPending?: boolean;
   onRefresh?: () => Promise<MediaResult | null>;
 };
 
@@ -27,7 +28,11 @@ function isStale(result: MediaResult) {
   );
 }
 
-export default function ResultCard({ result, onRefresh }: Props) {
+export default function ResultCard({
+  result,
+  statsPending,
+  onRefresh,
+}: Props) {
   const [qualityId, setQualityId] = useState(result.videos[0]?.id ?? "");
   const [photoIndex, setPhotoIndex] = useState(0);
   const [selected, setSelected] = useState<Set<number>>(
@@ -113,7 +118,11 @@ export default function ResultCard({ result, onRefresh }: Props) {
           ? [
               {
                 url: item.url,
-                filename: fileName(current, item.ext, item.label),
+                filename: fileName(
+                  current,
+                  item.ext,
+                  current.videos.length > 1 ? item.label : undefined
+                ),
               },
             ]
           : [];
@@ -200,7 +209,7 @@ export default function ResultCard({ result, onRefresh }: Props) {
         ) : null}
 
         <CaptionBlock text={result.caption} />
-        <StatsGrid stats={result.stats} />
+        <StatsGrid stats={result.stats} pending={statsPending} />
 
         {result.kind === "video" ? (
           <QualityPicker
