@@ -199,8 +199,6 @@ export default function ResultCard({
       />
 
       <div className="o-details">
-        <AuthorRow author={result.author} />
-
         {result.kind === "audio" ? (
           <div className="o-track">
             <strong>{result.audio?.title}</strong>
@@ -208,8 +206,11 @@ export default function ResultCard({
           </div>
         ) : null}
 
-        <CaptionBlock text={result.caption} />
-        <StatsGrid stats={result.stats} pending={statsPending} />
+        <div className="o-profile">
+          <AuthorRow author={result.author} platform={result.platform} />
+          <StatsGrid stats={result.stats} pending={statsPending} />
+          <CaptionBlock text={result.caption} />
+        </div>
 
         {result.kind === "video" ? (
           <QualityPicker
