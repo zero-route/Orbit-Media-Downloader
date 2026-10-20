@@ -67,6 +67,12 @@ function safeFilename(value: string | null, fallbackExtension: string) {
   return /\.[a-z0-9]{2,5}$/i.test(base) ? base : `${base}.${fallbackExtension}`;
 }
 
+function referrerFor(hostname: string) {
+  return /(cdninstagram\.com|fbcdn\.net|instagram\.com)$/i.test(hostname)
+    ? "https://www.instagram.com/"
+    : "https://www.tiktok.com/";
+}
+
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const target = params.get("u")?.trim() ?? "";
@@ -114,7 +120,7 @@ export async function GET(request: NextRequest) {
   const headers: Record<string, string> = {
     Accept: isImagePath(parsed.pathname) ? IMAGE_ACCEPT : "*/*",
     "User-Agent": USER_AGENT,
-    Referer: "https://www.tiktok.com/",
+    Referer: referrerFor(parsed.hostname),
   };
 
   if (range && !checkOnly) {
