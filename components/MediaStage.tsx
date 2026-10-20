@@ -58,7 +58,11 @@ export default function MediaStage({
           <div className="o-stage-frame">
             <SmartImage
               key={current?.url}
-              src={current?.isVideo ? current.thumbnailUrl : current?.url}
+              src={
+                current?.isVideo
+                  ? current.thumbnailUrl
+                  : (current?.previewUrl ?? current?.url)
+              }
               className="o-stage-img"
               onSize={learnRatio}
             />
