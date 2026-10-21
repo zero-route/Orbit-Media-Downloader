@@ -52,6 +52,17 @@ export function verifyUrl(
   return expires * 1000 < Date.now() ? "expired" : "ok";
 }
 
+export function mp3Path(payload: string, expires: number) {
+  const encoded = Buffer.from(payload, "utf8").toString("base64url");
+  const params = new URLSearchParams();
+
+  params.set("d", encoded);
+  params.set("e", String(expires));
+  params.set("s", digest(encoded, expires));
+
+  return `/api/mp3?${params.toString()}`;
+}
+
 export function proxyPath(url: string, expires: number) {
   const params = new URLSearchParams();
 
