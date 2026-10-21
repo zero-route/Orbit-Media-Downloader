@@ -1,4 +1,4 @@
-const MODERN_EXTENSION = /\.(heic|heif|avif)$/i;
+ const MODERN_EXTENSION = /\.(heic|heif|avif)$/i;
 
 export const IMAGE_ACCEPT =
   "image/jpeg,image/webp,image/png,image/*;q=0.8,*/*;q=0.5";
@@ -13,6 +13,14 @@ export function isImagePath(pathname: string) {
 export function imageVariants(rawUrl: string): string[] {
   try {
     const url = new URL(rawUrl);
+
+    if (url.hostname === "pbs.twimg.com" && url.searchParams.get("name") === "orig") {
+      const fallback = new URL(rawUrl);
+
+      fallback.searchParams.set("name", "large");
+
+      return [rawUrl, fallback.toString()];
+    }
 
     if (!MODERN_EXTENSION.test(url.pathname)) {
       return [rawUrl];
