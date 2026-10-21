@@ -28,11 +28,13 @@ export default function AuthorRow({ author, platform }: Props) {
   return (
     <div className="o-profile-head">
       <div className="o-author">
-        <div className="o-avatar">
-          {author.avatarUrl ? (
-            <SmartImage src={author.avatarUrl} className="o-avatar-img" />
-          ) : null}
-        </div>
+        {author.avatarUrl || platform !== "spotify" ? (
+          <div className="o-avatar">
+            {author.avatarUrl ? (
+              <SmartImage src={author.avatarUrl} className="o-avatar-img" />
+            ) : null}
+          </div>
+        ) : null}
         <div className="o-author-text">
           {author.name ? <strong>{author.name}</strong> : null}
           {meta ? <span>{meta}</span> : null}
