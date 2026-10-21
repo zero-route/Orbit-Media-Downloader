@@ -16,6 +16,10 @@ const DEFAULTS: Record<string, HostConfig> = {
     host: "best-tiktok-scraper-free-1000-calls.p.rapidapi.com",
     path: "/videos/details",
   },
+  "x:main": {
+    host: "best-twitter-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/tweets/details",
+  },
   "pinterest:main": {
     host: "instagram-tiktok-youtube-downloader.p.rapidapi.com",
     path: "/fetch",
