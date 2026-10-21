@@ -31,6 +31,7 @@ export type Photo = {
 
 export type AudioTrack = {
   url: string;
+  previewUrl?: string;
   title?: string;
   artist?: string;
   ext: string;
