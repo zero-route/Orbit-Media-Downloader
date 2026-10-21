@@ -5,7 +5,7 @@ export type HostConfig = {
   path: string;
 };
 
-export type HostRole = "main" | "details";
+export type HostRole = "main" | "details" | "audio";
 
 const DEFAULTS: Record<string, HostConfig> = {
   "tiktok:main": {
@@ -15,6 +15,14 @@ const DEFAULTS: Record<string, HostConfig> = {
   "tiktok:details": {
     host: "best-tiktok-scraper-free-1000-calls.p.rapidapi.com",
     path: "/videos/details",
+  },
+  "spotify:main": {
+    host: "spotify81.p.rapidapi.com",
+    path: "/tracks",
+  },
+  "spotify:audio": {
+    host: "spotify81.p.rapidapi.com",
+    path: "/download_track",
   },
   "x:main": {
     host: "best-twitter-scraper-free-1000-calls.p.rapidapi.com",
@@ -54,7 +62,8 @@ export function hostConfig(
 ): HostConfig {
   const base = DEFAULTS[`${platform}:${role}`];
   const key = platform.toUpperCase();
-  const prefix = role === "main" ? `RAPIDAPI_${key}` : `RAPIDAPI_${key}_DETAILS`;
+  const prefix =
+    role === "main" ? `RAPIDAPI_${key}` : `RAPIDAPI_${key}_${role.toUpperCase()}`;
 
   let legacyHost: string | undefined;
   let legacyPath: string | undefined;
