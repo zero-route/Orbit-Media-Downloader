@@ -68,6 +68,10 @@ function safeFilename(value: string | null, fallbackExtension: string) {
 }
 
 function referrerFor(hostname: string) {
+  if (/twimg\.com$/i.test(hostname)) {
+    return "https://x.com/";
+  }
+
   if (/pinimg\.com$/i.test(hostname)) {
     return "https://www.pinterest.com/";
   }
