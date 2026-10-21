@@ -103,6 +103,15 @@ export function PlayIcon({ size = 26 }: IconProps) {
   );
 }
 
+export function PauseIcon({ size = 26 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6" y="5" width="4.5" height="14" rx="1.2" />
+      <rect x="13.5" y="5" width="4.5" height="14" rx="1.2" />
+    </svg>
+  );
+}
+
 export function ChevronLeftIcon(props: IconProps) {
   return (
     <Base {...props} strokeWidth={2.2}>
