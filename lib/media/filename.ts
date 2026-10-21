@@ -26,7 +26,23 @@ export function baseName(result: MediaResult) {
   return ["Orbit", owner || result.platform, unique].join("_");
 }
 
+function titleName(value: string) {
+  return value
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[.\s]+|[.\s]+$/g, "")
+    .slice(0, 150);
+}
+
 export function fileName(result: MediaResult, ext: string, suffix?: string) {
+  if (result.platform === "spotify" && result.audio?.title) {
+    const title = titleName(result.audio.title);
+
+    if (title) {
+      return `${title}.${ext}`;
+    }
+  }
+
   const base = baseName(result);
   const tail = suffix ? clean(suffix) : "";
 
