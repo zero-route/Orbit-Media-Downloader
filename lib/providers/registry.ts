@@ -5,11 +5,13 @@ import { instagramDetails, instagramProvider } from "./instagram";
 import { mockProvider } from "./mock";
 import { pinterestDetails, pinterestProvider } from "./pinterest";
 import { tiktokDetails, tiktokProvider } from "./tiktok";
+import { xProvider } from "./x";
 
 const REAL: Partial<Record<PlatformId, Provider>> = {
   tiktok: tiktokProvider,
   instagram: instagramProvider,
   pinterest: pinterestProvider,
+  x: xProvider,
 };
 
 const DETAILS: Partial<Record<PlatformId, DetailsProvider>> = {
