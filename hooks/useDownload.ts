@@ -9,7 +9,7 @@ export type DownloadFile = {
 
 export type SaveOutcome = "ok" | "expired" | "failed" | "mock";
 
-const PROXY_PREFIX = "/api/download";
+const PROXY_PREFIXES = ["/api/download", "/api/mp3"];
 const DONE_VISIBLE_MS = 4000;
 
 function wait(ms: number) {
@@ -17,7 +17,7 @@ function wait(ms: number) {
 }
 
 function isProxy(url: string) {
-  return url.startsWith(PROXY_PREFIX);
+  return PROXY_PREFIXES.some((prefix) => url.startsWith(prefix));
 }
 
 type Fetched =
@@ -162,9 +162,13 @@ export function useDownload() {
       for (let index = 0; index < total; index += 1) {
         const file = files[index];
 
-        setNotice(
-          total > 1 ? `Mengunduh ${index + 1} dari ${total}...` : "Mengunduh..."
-        );
+        if (file.url.startsWith("/api/mp3")) {
+          setNotice("Menyiapkan MP3, mohon tunggu...");
+        } else {
+          setNotice(
+            total > 1 ? `Mengunduh ${index + 1} dari ${total}...` : "Mengunduh..."
+          );
+        }
 
         if (!isProxy(file.url)) {
           saveDirect(file);
