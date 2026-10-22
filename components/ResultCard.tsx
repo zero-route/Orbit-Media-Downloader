@@ -166,6 +166,24 @@ export default function ResultCard({
     );
   };
 
+  const handleSlideshow = () => {
+    if (!result.slideshowUrl) {
+      setNotice("Slideshow tidak tersedia untuk konten ini.");
+      return;
+    }
+
+    void run((current) =>
+      current.slideshowUrl
+        ? [
+            {
+              url: current.slideshowUrl,
+              filename: fileName(current, "mp4", "slideshow"),
+            },
+          ]
+        : []
+    );
+  };
+
   const handleCopy = async () => {
     if (!result.caption) {
       return;
@@ -188,7 +206,8 @@ export default function ResultCard({
       ? "Unduh MP3"
       : "Unduh";
 
-  const showAudio = result.kind === "video";
+  const showAudio =
+    result.kind === "video" || (result.kind === "photo" && Boolean(result.audio));
 
   return (
     <section className="o-result">
@@ -237,6 +256,7 @@ export default function ResultCard({
           }
           onPrimary={handlePrimary}
           onAudio={showAudio ? handleAudio : undefined}
+          onSlideshow={handleSlideshow}
           onCopy={result.caption ? handleCopy : undefined}
           slideshow={
             result.kind === "photo" && result.platform === "tiktok"
