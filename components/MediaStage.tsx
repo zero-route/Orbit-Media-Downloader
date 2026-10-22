@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import SmartImage from "@/components/SmartImage";
 import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MusicIcon,
+  PauseIcon,
   PlayIcon,
 } from "@/components/icons/UiIcons";
 import { formatDuration } from "@/lib/text";
@@ -33,6 +34,21 @@ export default function MediaStage({
 }: Props) {
   const [playing, setPlaying] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePreview = () => {
+    const element = audioRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    if (element.paused) {
+      void element.play().catch(() => setPlaying(false));
+    } else {
+      element.pause();
+    }
+  };
 
   const learnRatio = (width: number, height: number) => {
     if (width > 0 && height > 0) {
@@ -140,9 +156,31 @@ export default function MediaStage({
         <div className="o-stage is-audio">
           <div className="o-stage-frame">
             <SmartImage src={result.coverUrl} className="o-stage-img" />
-            <span className="o-audio-mark">
-              <MusicIcon size={26} />
-            </span>
+            {result.audio?.previewUrl ? (
+              <>
+                <audio
+                  ref={audioRef}
+                  src={result.audio.previewUrl}
+                  preload="none"
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                  onEnded={() => setPlaying(false)}
+                  onError={() => setPlaying(false)}
+                />
+                <button
+                  type="button"
+                  className="o-play"
+                  aria-label={playing ? "Jeda" : "Putar"}
+                  onClick={togglePreview}
+                >
+                  {playing ? <PauseIcon size={26} /> : <PlayIcon size={26} />}
+                </button>
+              </>
+            ) : (
+              <span className="o-audio-mark">
+                <MusicIcon size={26} />
+              </span>
+            )}
             {result.durationSeconds ? (
               <span className="o-badge">
                 {formatDuration(result.durationSeconds)}
