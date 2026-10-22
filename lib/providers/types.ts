@@ -69,6 +69,7 @@ export type MediaResult = {
   audio?: AudioTrack;
   expiresAt?: number;
   detailsPending?: boolean;
+  slideshowUrl?: string;
 };
 
 export type MediaPatch = {
