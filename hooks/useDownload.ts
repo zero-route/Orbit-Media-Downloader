@@ -9,7 +9,7 @@ export type DownloadFile = {
 
 export type SaveOutcome = "ok" | "expired" | "failed" | "mock";
 
-const PROXY_PREFIXES = ["/api/download", "/api/mp3"];
+const PROXY_PREFIXES = ["/api/download", "/api/mp3", "/api/slideshow"];
 const DONE_VISIBLE_MS = 4000;
 
 function wait(ms: number) {
@@ -164,6 +164,8 @@ export function useDownload() {
 
         if (file.url.startsWith("/api/mp3")) {
           setNotice("Menyiapkan MP3, mohon tunggu...");
+        } else if (file.url.startsWith("/api/slideshow")) {
+          setNotice("Membuat slideshow, mohon tunggu...");
         } else {
           setNotice(
             total > 1 ? `Mengunduh ${index + 1} dari ${total}...` : "Mengunduh..."
