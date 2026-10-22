@@ -63,6 +63,16 @@ export function mp3Path(payload: string, expires: number) {
   return `/api/mp3?${params.toString()}`;
 }
 
+export function slideshowPath(postUrl: string, expires: number) {
+  const params = new URLSearchParams();
+
+  params.set("u", postUrl);
+  params.set("e", String(expires));
+  params.set("s", digest(`slideshow:${postUrl}`, expires));
+
+  return `/api/slideshow?${params.toString()}`;
+}
+
 export function proxyPath(url: string, expires: number) {
   const params = new URLSearchParams();
 
