@@ -1,7 +1,7 @@
 import { AppError } from "../../errors";
 import { deadlineIn, rapidJson } from "../../rapidapi/client";
 import { hostConfig } from "../../rapidapi/hosts";
-import { expiryFromNow, proxyPath } from "../../sign";
+import { expiryFromNow, proxyPath, slideshowPath } from "../../sign";
 import type {
   DetailsProvider,
   DetectedInput,
@@ -47,6 +47,13 @@ async function fetchRaw(targetUrl: string, deadlineAt: number): Promise<TikTokRa
   }
 
   throw new AppError("Gagal mengambil data dari TikTok.", 502);
+}
+
+export async function fetchTikTokPost(inputUrl: string) {
+  const deadlineAt = deadlineIn(MAIN_BUDGET_MS);
+  const targetUrl = await resolvePostUrl(inputUrl);
+
+  return fetchRaw(targetUrl, deadlineAt);
 }
 
 export const tiktokProvider: Provider = async (
@@ -111,6 +118,8 @@ export const tiktokProvider: Provider = async (
       : undefined,
     expiresAt: expires * 1000,
     detailsPending: true,
+    slideshowUrl:
+      isPhoto && audioUrl ? slideshowPath(input.url, expires) : undefined,
   };
 };
 
