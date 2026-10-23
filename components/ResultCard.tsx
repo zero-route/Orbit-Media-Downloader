@@ -218,6 +218,8 @@ export default function ResultCard({
         selected={selected}
         onPhotoIndex={setPhotoIndex}
         onToggle={toggle}
+        onExpired={onRefresh}
+        onNotice={setNotice}
       />
 
       <div className="o-details">
