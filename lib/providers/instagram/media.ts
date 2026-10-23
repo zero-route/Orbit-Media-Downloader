@@ -6,7 +6,7 @@ export type IgMedia = {
   thumb?: string;
 };
 
-function httpUrl(value: unknown) {
+export function httpUrl(value: unknown) {
   const text = str(value);
 
   return text && /^https?:\/\//i.test(text) ? text : undefined;
