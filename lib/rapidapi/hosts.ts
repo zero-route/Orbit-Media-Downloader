@@ -24,6 +24,14 @@ const DEFAULTS: Record<string, HostConfig> = {
     host: "spotify81.p.rapidapi.com",
     path: "/download_track",
   },
+  "threads:main": {
+    host: "best-threads-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/posts/media",
+  },
+  "threads:details": {
+    host: "best-threads-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/posts/details",
+  },
   "x:main": {
     host: "best-twitter-scraper-free-1000-calls.p.rapidapi.com",
     path: "/tweets/details",
