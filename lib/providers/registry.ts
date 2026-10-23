@@ -5,6 +5,7 @@ import { instagramDetails, instagramProvider } from "./instagram";
 import { mockProvider } from "./mock";
 import { pinterestDetails, pinterestProvider } from "./pinterest";
 import { spotifyProvider } from "./spotify";
+import { threadsDetails, threadsProvider } from "./threads";
 import { tiktokDetails, tiktokProvider } from "./tiktok";
 import { xProvider } from "./x";
 
@@ -13,6 +14,7 @@ const REAL: Partial<Record<PlatformId, Provider>> = {
   instagram: instagramProvider,
   pinterest: pinterestProvider,
   x: xProvider,
+  threads: threadsProvider,
   spotify: spotifyProvider,
 };
 
@@ -20,6 +22,7 @@ const DETAILS: Partial<Record<PlatformId, DetailsProvider>> = {
   tiktok: tiktokDetails,
   instagram: instagramDetails,
   pinterest: pinterestDetails,
+  threads: threadsDetails,
 };
 
 export function getProvider(platform: PlatformId): Provider {
