@@ -4,7 +4,7 @@ const BUILDERS: Partial<Record<PlatformId, (username: string) => string>> = {
   tiktok: (name) => `https://www.tiktok.com/@${name}`,
   instagram: (name) => `https://www.instagram.com/${name}/`,
   x: (name) => `https://x.com/${name}`,
-  threads: (name) => `https://www.threads.net/@${name}`,
+  threads: (name) => `https://www.threads.com/@${name}`,
   pinterest: (name) => `https://www.pinterest.com/${name}/`,
 };
 
