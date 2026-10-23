@@ -70,7 +70,7 @@ async function fetchMedia(candidates: string[], deadlineAt: number) {
   );
 }
 
-function buildMedia(items: IgMedia[], expires: number) {
+export function buildMedia(items: IgMedia[], expires: number) {
   const wrap = (url: string) => proxyPath(url, expires);
   const hasPhoto = items.some((item) => item.type === "photo");
 
