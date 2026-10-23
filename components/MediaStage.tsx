@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import AudioPlayer from "@/components/AudioPlayer";
 import SmartImage from "@/components/SmartImage";
 import {
@@ -13,6 +13,7 @@ import { formatDuration } from "@/lib/text";
 import type { MediaResult } from "@/lib/providers/types";
 
 const DEFAULT_RATIO = 9 / 16;
+const REFRESH_MARGIN_MS = 60_000;
 
 type Props = {
   result: MediaResult;
@@ -21,6 +22,8 @@ type Props = {
   selected: Set<number>;
   onPhotoIndex: (index: number) => void;
   onToggle: (index: number) => void;
+  onExpired?: () => Promise<unknown>;
+  onNotice?: (message: string) => void;
 };
 
 export default function MediaStage({
@@ -30,9 +33,80 @@ export default function MediaStage({
   selected,
   onPhotoIndex,
   onToggle,
+  onExpired,
+  onNotice,
 }: Props) {
   const [playing, setPlaying] = useState(false);
+  const [recovering, setRecovering] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
+  const retried = useRef(false);
+
+  const startPlay = async () => {
+    if (recovering) {
+      return;
+    }
+
+    retried.current = false;
+
+    const stale =
+      typeof result.expiresAt === "number" &&
+      Date.now() > result.expiresAt - REFRESH_MARGIN_MS;
+
+    if (stale && onExpired) {
+      setRecovering(true);
+
+      try {
+        await onExpired();
+      } catch {
+        setRecovering(false);
+      }
+
+      setRecovering(false);
+    }
+
+    setPlaying(true);
+  };
+
+  const handleVideoError = async () => {
+    if (recovering) {
+      return;
+    }
+
+    setRecovering(true);
+
+    let gone = false;
+
+    if (videoUrl?.startsWith("/api/download")) {
+      try {
+        const response = await fetch(`${videoUrl}&c=1`, { cache: "no-store" });
+
+        gone = response.status === 410 || response.status === 403;
+      } catch {
+        gone = false;
+      }
+    }
+
+    if (gone && onExpired && !retried.current) {
+      retried.current = true;
+
+      try {
+        const fresh = await onExpired();
+
+        if (fresh) {
+          setRecovering(false);
+          return;
+        }
+      } catch {
+        gone = false;
+      }
+    }
+
+    setRecovering(false);
+    setPlaying(false);
+    onNotice?.(
+      "Pratinjau tidak bisa diputar di perangkat ini. Tombol unduh tetap bisa dipakai."
+    );
+  };
 
   const learnRatio = (width: number, height: number) => {
     if (width > 0 && height > 0) {
@@ -166,6 +240,7 @@ export default function MediaStage({
               controls
               autoPlay
               playsInline
+              onError={() => void handleVideoError()}
               onLoadedMetadata={(event) => {
                 const video = event.currentTarget;
 
@@ -185,7 +260,8 @@ export default function MediaStage({
                 type="button"
                 className="o-play"
                 aria-label="Putar video"
-                onClick={() => setPlaying(true)}
+                disabled={recovering}
+                onClick={() => void startPlay()}
               >
                 <PlayIcon size={26} />
               </button>
