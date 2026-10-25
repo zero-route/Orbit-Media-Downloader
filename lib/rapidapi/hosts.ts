@@ -5,7 +5,7 @@ export type HostConfig = {
   path: string;
 };
 
-export type HostRole = "main" | "details" | "audio";
+export type HostRole = "main" | "details" | "audio" | "download";
 
 const DEFAULTS: Record<string, HostConfig> = {
   "tiktok:main": {
@@ -31,6 +31,14 @@ const DEFAULTS: Record<string, HostConfig> = {
   "threads:details": {
     host: "best-threads-scraper-free-1000-calls.p.rapidapi.com",
     path: "/posts/details",
+  },
+  "youtube:main": {
+    host: "best-youtube-scraper-free-1000-calls.p.rapidapi.com",
+    path: "/videos/details",
+  },
+  "youtube:download": {
+    host: "all-in-one-downloader-api.p.rapidapi.com",
+    path: "/youtube/download",
   },
   "x:main": {
     host: "best-twitter-scraper-free-1000-calls.p.rapidapi.com",
