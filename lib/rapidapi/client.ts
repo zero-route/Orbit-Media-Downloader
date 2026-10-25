@@ -1,4 +1,4 @@
- import { AppError } from "../errors";
+import { AppError } from "../errors";
 import { requireKeys } from "./keys";
 
 export type RapidRequest = {
@@ -9,6 +9,8 @@ export type RapidRequest = {
   retries?: number;
   retryDelayMs?: number;
   deadlineAt?: number;
+  method?: "GET" | "POST";
+  body?: unknown;
 };
 
 const DEFAULT_TIMEOUT_MS = 20_000;
@@ -43,7 +45,10 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
   const timeout = request.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const offset = Math.floor(Math.random() * keys.length);
   const search = new URLSearchParams(request.query).toString();
-  const endpoint = `https://${request.host}${request.path}?${search}`;
+  const endpoint = `https://${request.host}${request.path}${search ? `?${search}` : ""}`;
+  const method = request.method ?? "GET";
+  const body =
+    request.body === undefined ? undefined : JSON.stringify(request.body);
 
   let lastError: AppError | null = null;
 
@@ -64,12 +69,14 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
 
     try {
       const response = await fetch(endpoint, {
-        method: "GET",
+        method,
         headers: {
           "X-Rapidapi-Key": key,
           "X-Rapidapi-Host": request.host,
           Accept: "application/json",
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
         },
+        body,
         cache: "no-store",
         signal: AbortSignal.timeout(Math.min(timeout, remaining)),
       });
@@ -84,7 +91,8 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
         lastError = new AppError(
           "Server data memberi respons tidak terduga.",
           502,
-          text.slice(0, 300)
+          text.slice(0, 300),
+          response.status
         );
         continue;
       }
@@ -99,7 +107,8 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
         lastError = new AppError(
           "Server sedang ramai, coba lagi sebentar.",
           429,
-          detail
+          detail,
+          response.status
         );
         continue;
       }
@@ -108,7 +117,8 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
         lastError = new AppError(
           messageOf(payload, "Akses ke server data ditolak."),
           502,
-          detail
+          detail,
+          response.status
         );
         continue;
       }
@@ -117,7 +127,8 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
         lastError = new AppError(
           "Server data sedang bermasalah.",
           502,
-          detail
+          detail,
+          response.status
         );
         continue;
       }
@@ -125,7 +136,8 @@ export async function rapidJson(request: RapidRequest): Promise<unknown> {
       throw new AppError(
         messageOf(payload, `Server data menolak permintaan (${response.status}).`),
         response.status === 404 ? 404 : 502,
-        detail
+        detail,
+        response.status
       );
     } catch (error) {
       if (error instanceof AppError) {
