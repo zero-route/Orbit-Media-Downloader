@@ -73,6 +73,36 @@ export function slideshowPath(postUrl: string, expires: number) {
   return `/api/slideshow?${params.toString()}`;
 }
 
+export function payloadPath(route: string, payload: string, expires: number) {
+  const encoded = Buffer.from(payload, "utf8").toString("base64url");
+  const params = new URLSearchParams();
+
+  params.set("d", encoded);
+  params.set("e", String(expires));
+  params.set("s", digest(`${route}|${encoded}`, expires));
+
+  return `${route}?${params.toString()}`;
+}
+
+export function decodePayload<T>(encoded: string): T | null {
+  try {
+    const value = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+
+    return value && typeof value === "object" ? (value as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function verifyPayload(
+  route: string,
+  encoded: string,
+  expires: number,
+  signature: string
+) {
+  return verifyUrl(`${route}|${encoded}`, expires, signature);
+}
+
 export function proxyPath(url: string, expires: number) {
   const params = new URLSearchParams();
 
