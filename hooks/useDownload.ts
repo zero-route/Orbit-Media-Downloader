@@ -264,7 +264,7 @@ export function useDownload() {
 
         if (result.state !== "ok") {
           setNotice(
-            result.message ??
+            (result.state === "failed" ? result.message : undefined) ??
               (total > 1
                 ? `Gagal mengunduh file ${index + 1} dari ${total}. Coba lagi.`
                 : "Gagal mengunduh, coba lagi.")
