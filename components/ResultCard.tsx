@@ -33,7 +33,11 @@ export default function ResultCard({
   statsPending,
   onRefresh,
 }: Props) {
-  const [qualityId, setQualityId] = useState(result.videos[0]?.id ?? "");
+  const [qualityId, setQualityId] = useState(
+    result.videos.find((item) => item.id === "720p")?.id ??
+      result.videos[0]?.id ??
+      ""
+  );
   const [photoIndex, setPhotoIndex] = useState(0);
   const [selected, setSelected] = useState<Set<number>>(
     () => new Set(result.photos.map((_, index) => index))
