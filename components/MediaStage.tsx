@@ -49,6 +49,7 @@ export default function MediaStage({
     retried.current = false;
 
     const stale =
+      !result.embedUrl &&
       typeof result.expiresAt === "number" &&
       Date.now() > result.expiresAt - REFRESH_MARGIN_MS;
 
@@ -115,7 +116,12 @@ export default function MediaStage({
   };
 
   const wrapStyle = {
-    "--ar": result.kind === "audio" ? 1 : ratio ?? DEFAULT_RATIO,
+    "--ar":
+      result.kind === "audio"
+        ? 1
+        : result.embedUrl
+          ? 16 / 9
+          : (ratio ?? DEFAULT_RATIO),
   } as React.CSSProperties;
 
   if (result.kind === "photo") {
@@ -226,13 +232,24 @@ export default function MediaStage({
     );
   }
 
-  const canPlay = Boolean(videoUrl) && !videoUrl?.startsWith("about:");
+  const canPlay =
+    Boolean(result.embedUrl) ||
+    (Boolean(videoUrl) && !videoUrl?.startsWith("about:"));
 
   return (
     <div className="o-stage-wrap" style={wrapStyle}>
       <div className="o-stage is-video">
         <div className="o-stage-frame">
-          {playing && canPlay ? (
+          {playing && canPlay && result.embedUrl ? (
+            <iframe
+              className="o-stage-video"
+              src={result.embedUrl}
+              title={result.caption ?? "YouTube"}
+              style={{ border: 0 }}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          ) : playing && canPlay ? (
             <video
               className="o-stage-video"
               src={videoUrl}
