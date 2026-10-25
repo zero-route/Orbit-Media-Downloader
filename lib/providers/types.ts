@@ -1,4 +1,4 @@
-export type PlatformId =
+ export type PlatformId =
   | "tiktok"
   | "instagram"
   | "youtube"
@@ -70,6 +70,7 @@ export type MediaResult = {
   expiresAt?: number;
   detailsPending?: boolean;
   slideshowUrl?: string;
+  embedUrl?: string;
 };
 
 export type MediaPatch = {
