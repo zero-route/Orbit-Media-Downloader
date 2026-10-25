@@ -19,7 +19,9 @@ export default function AuthorRow({ author, platform }: Props) {
   const meta = [
     author.username ? `@${author.username}` : null,
     typeof author.followers === "number"
-      ? `${formatCount(author.followers)} pengikut`
+      ? `${formatCount(author.followers)} ${
+          platform === "youtube" ? "pelanggan" : "pengikut"
+        }`
       : null,
   ]
     .filter(Boolean)
